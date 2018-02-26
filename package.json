@@ -10,10 +10,10 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xiangle/light-touch.git"
+    "url": "git+https://github.com/xiangle/light-scroll.git"
   },
   "bugs": {
-    "url": "https://github.com/xiangle/light-touch/issues"
+    "url": "https://github.com/xiangle/light-scroll/issues"
   },
-  "homepage": "https://github.com/xiangle/light-touch#readme"
+  "homepage": "https://github.com/xiangle/light-scroll#readme"
 }
