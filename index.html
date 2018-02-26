@@ -24,7 +24,15 @@
       }
    </style>
    <script src="index.js?xx"></script>
-   <script src="test.js?xx"></script>
+   <script>
+      window.addEventListener("load", function () {
+
+         lightTouch('.x').slideX()
+         lightTouch('.y').slideY()
+         lightTouch('.xy').slide()
+
+      }, false);
+   </script>
 </head>
 
 <body>
@@ -32,8 +40,11 @@
       <span>X</span>
    </div>
    <div class="target y">
-         <span>Y</span>
-      </div>
+      <span>Y</span>
+   </div>
+   <div class="target xy">
+      <span>XY</span>
+   </div>
 </body>
 
 </html>

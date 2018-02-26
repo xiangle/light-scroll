@@ -9,68 +9,47 @@ class touch {
       this.pageX = 0
       this.pageY = 0
    }
-   swipe(move, end) {
-
-      //如果未指定move方法，则执行默认行为
-      if (!move) {
-         move = function (ev, object) {
-            let x = Math.round(object.pageX - object.elementX);
-            let y = Math.round(object.pageY - object.elementY);
-            object.el.setAttribute("style", `transform:translate(${x}px, ${y}px) translateZ(0px)`);
-         }
+   _tasks(move, end) {
+      if (move) {
+         this.moveTasks.push(move)
       }
-
-      this.moveTasks.push(move)
-
       if (end) {
          this.endTasks.push(end)
       }
-
+   }
+   slide(move, end) {
+      this._tasks(function (ev, newObject) {
+         let x = Math.round(newObject.pageX - newObject.elementX);
+         let y = Math.round(newObject.pageY - newObject.elementY);
+         newObject.el.setAttribute("style", `transform:translate(${x}px, ${y}px) translateZ(0px)`);
+         move && move(ev, newObject);
+         return true;
+      }, end);
       return this;
    }
-   swipeX(move, end) {
-      if (move) {
-         this.swipe(move, end)
-      } else {
-         this.swipe(function (ev, object) {
-            let { moveRatio } = object;
-            if (moveRatio > 1.8) {
-               let x = Math.round(object.pageX - object.elementX);
-               object.el.setAttribute("style", `transform:translate(${x}px, 0px) translateZ(0px)`);
-               return true;
-            }
-         }, end);
-      }
+   slideX(move, end) {
+      this._tasks(function (ev, newObject) {
+         let { moveRatio } = newObject;
+         if (moveRatio > 1.8) {
+            let x = Math.round(newObject.pageX - newObject.elementX);
+            newObject.el.setAttribute("style", `transform:translate(${x}px, 0px) translateZ(0px)`);
+            move && move(ev, newObject);
+            return true;
+         }
+      }, end);
       return this;
    }
-   swipeY(move, end) {
-      if (move) {
-         this.swipe(move, end)
-      } else {
-         this.swipe(function (ev, object) {
-            let { moveRatio } = object;
-            if (moveRatio < 0.5) {
-               let y = Math.round(object.pageY - object.elementY);
-               object.el.setAttribute("style", `transform:translate(0px, ${y}px) translateZ(0px)`);
-               return true;
-            }
-         }, end);
-      }
+   slideY(move, end) {
+      this._tasks(function (ev, newObject) {
+         let { moveRatio } = newObject;
+         if (moveRatio < 0.5) {
+            let y = Math.round(newObject.pageY - newObject.elementY);
+            newObject.el.setAttribute("style", `transform:translate(0px, ${y}px) translateZ(0px)`);
+            move && move(ev, newObject);
+            return true;
+         }
+      }, end);
       return this;
-   }
-   drag(move, end) {
-      if (move) {
-         this.moveTasks.push(function (ev) {
-            let [{ pageX, pageY }] = ev.touches
-            move({ pageX, pageY })
-         })
-      }
-      if (end) {
-         this.endTasks.push(function (ev) {
-            end(ev)
-         })
-      }
-      return this
    }
 }
 
@@ -78,7 +57,7 @@ function lightTouch(el) {
 
    if (typeof el === 'string') {
       el = document.querySelector(el);
-   } else if (typeof el !== 'object') {
+   } else if (typeof el !== 'newObject') {
       console.error('touch选择器数据类型无效')
       return
    }
