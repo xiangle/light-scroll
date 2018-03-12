@@ -1,39 +1,45 @@
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.lightTouch = factory());
+}(this, (function () { 'use strict';
+
 class touch {
    constructor(el) {
-      this.el = el
-      this.moveTasks = []
-      this.endTasks = []
-      this.moveRatio = 0
-      this.moveX = 0
-      this.moveY = 0
-      this.pageX = 0
-      this.pageY = 0
+      this.el = el;
+      this.moveTasks = [];
+      this.endTasks = [];
+      this.moveRatio = 0;
+      this.moveX = 0;
+      this.moveY = 0;
+      this.pageX = 0;
+      this.pageY = 0;
    }
    _tasks(move, end) {
       if (move) {
-         this.moveTasks.push(move)
+         this.moveTasks.push(move);
       }
       if (end) {
-         this.endTasks.push(end)
+         this.endTasks.push(end);
       }
    }
    slide(move, end) {
       this._tasks(function (ev, newObject) {
          let x = Math.round(newObject.pageX - newObject.elementX);
          let y = Math.round(newObject.pageY - newObject.elementY);
-         newObject.el.setAttribute("style", `transform:translate(${x}px, ${y}px) translateZ(0px)`);
+         newObject.el.setAttribute("style", `transform:translate(${x}px, ${y}px)`);
          move && move(ev, newObject);
          return true;
       }, end);
       return this;
    }
    slideX(move, end) {
-      this._tasks(function (ev, newObject) {
-         let { moveRatio } = newObject;
+      this._tasks(function (ev, data) {
+         let { moveRatio } = data;
          if (moveRatio > 1.8) {
-            let x = Math.round(newObject.pageX - newObject.elementX);
-            newObject.el.setAttribute("style", `transform:translate(${x}px, 0px) translateZ(0px)`);
-            move && move(ev, newObject);
+            let x = Math.round(data.pageX - data.elementX);
+            data.el.style.transform = `translateX(${x}px)`;
+            move && move(ev, data);
             return true;
          }
       }, end);
@@ -42,9 +48,9 @@ class touch {
    slideY(move, end) {
       this._tasks(function (ev, newObject) {
          let { moveRatio } = newObject;
-         if (moveRatio < 0.5) {
+         if (moveRatio < 0.3) {
             let y = Math.round(newObject.pageY - newObject.elementY);
-            newObject.el.setAttribute("style", `transform:translate(0px, ${y}px) translateZ(0px)`);
+            newObject.el.style.transform = `translateY(${y}px)`;
             move && move(ev, newObject);
             return true;
          }
@@ -53,17 +59,17 @@ class touch {
    }
 }
 
-function lightTouch(el) {
+function main (el) {
 
    if (typeof el === 'string') {
       el = document.querySelector(el);
    } else if (typeof el !== 'newObject') {
-      console.error('touch选择器数据类型无效')
+      console.error('touch选择器数据类型无效');
       return
    }
 
    if (!el) {
-      console.error('touch选择器找不到目标元素')
+      console.error('touch选择器找不到目标元素');
       return
    }
 
@@ -87,9 +93,18 @@ function lightTouch(el) {
       if (newTouch.task) {
          newTouch.task(ev, newTouch);
       } else {
+
          newTouch.moveX = Math.abs(pageX - newTouch.startX);
          newTouch.moveY = Math.abs(pageY - newTouch.startY);
-         newTouch.moveRatio = newTouch.moveX / newTouch.moveY;
+
+         if (newTouch.moveX) {
+            newTouch.moveRatio = 2;
+         } else if (newTouch.moveY) {
+            newTouch.moveRatio = 0;
+         } else {
+            newTouch.moveRatio = newTouch.moveX / newTouch.moveY;
+         }
+
          for (let task of newTouch.moveTasks) {
             // 如果task返回值为true，则表示手势匹配成功
             if (task(ev, newTouch)) {
@@ -107,7 +122,7 @@ function lightTouch(el) {
       newTouch.pageY = pageY - newTouch.elementY;
       delete newTouch.task;
       for (let task of newTouch.endTasks) {
-         task(ev)
+         task(ev);
       }
       ev.preventDefault();
       ev.stopPropagation();
@@ -116,3 +131,7 @@ function lightTouch(el) {
    return newTouch;
 
 }
+
+return main;
+
+})));

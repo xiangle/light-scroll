@@ -1,19 +1,22 @@
 {
-  "name": "light-scroll",
+  "name": "touch-box",
   "version": "1.0.0",
-  "description": "",
+  "description": "轻量级触控容器",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "rollup src/main.js -o dist/index.js --f  umd --name lightTouch --watch"
+  },
+  "devDependencies": {
+   "rollup": "^0.54.1"
   },
   "author": "",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xiangle/light-scroll.git"
+    "url": "git+https://github.com/xiangle/touch-box.git"
   },
   "bugs": {
-    "url": "https://github.com/xiangle/light-scroll/issues"
+    "url": "https://github.com/xiangle/touch-box/issues"
   },
-  "homepage": "https://github.com/xiangle/light-scroll#readme"
+  "homepage": "https://github.com/xiangle/touch-box#readme"
 }
