@@ -1,10 +1,12 @@
 {
   "name": "touch-box",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "轻量级触控容器",
-  "main": "index.js",
+  "main": "touchBox.js",
+  "module": "dist/touchBox.esm.js",
   "scripts": {
-    "dev": "rollup src/main.js -o dist/index.js --f  umd --name lightTouch --watch"
+    "dev": "rollup src/index.js -o dist/touchBox.js --f umd --name touchBox --watch",
+    "build": "rollup src/index.js -o dist/touchBox.em.js --f es"
   },
   "devDependencies": {
    "rollup": "^0.54.1"
