@@ -1,3 +1,11 @@
+let defaults = {
+   loop: false,
+   distance: 5,
+   autoPlay: 3000,
+   damping: 5,
+   position: 1,
+}
+
 export default function (options = {}) {
 
    let { el } = this;
@@ -8,14 +16,7 @@ export default function (options = {}) {
 
    if (children.length) {
 
-      Object.assign(this, {
-         gap: 5,
-         loop: false,
-         distance: 5,
-         autoPlay: 3000,
-         damping: 5,
-         position: 1,
-      }, options);
+      Object.assign(this, defaults, options);
 
       el.style.transitionProperty = `transform`;
       el.style.transform = `translateX(0px)`;
@@ -24,11 +25,9 @@ export default function (options = {}) {
       if (this.loop) {
 
          this.current = this.position;
-
-         // 首尾添加交叉重叠元素
+         el.style.transform = `translateX(${-clientWidth}px)`;
          el.appendChild(firstElementChild.cloneNode(true));
          el.insertBefore(lastElementChild.cloneNode(true), el.children[0]);
-         el.style.transform = `translateX(${-clientWidth}px)`;
 
          // 在过渡结束后，对重合元素进行换向操作
          el.addEventListener("transitionend", () => {
@@ -49,8 +48,6 @@ export default function (options = {}) {
          el.style.transform = `translateX(0px)`;
       }
 
-      this.amount = children.length - 1;
-
       // 使用绝对定位，子节点相对父节点位置始终保持固定
       for (let i = 0; i < children.length; i++) {
          let item = children[i];
@@ -58,21 +55,19 @@ export default function (options = {}) {
       }
 
       let autoPlay = () => {
-         if (this.autoPlay) {
-            this.timeID = setTimeout(() => {
-               if (this.current < this.amount) {
-                  let X = ++this.current * this.clientWidth;
-                  el.style.transitionDuration = "450ms";
-                  el.style.transitionTimingFunction = "ease";
-                  el.style.transform = `translateX(${-X}px)`;
-                  autoPlay();
-               }
-            }, this.autoPlay);
-         }
+         this.timeID = setTimeout(() => {
+            if (this.current < this.amount) {
+               let X = ++this.current * this.clientWidth;
+               el.style.transitionDuration = "450ms";
+               el.style.transitionTimingFunction = "ease";
+               el.style.transform = `translateX(${-X}px)`;
+               autoPlay();
+            }
+         }, this.autoPlay);
       }
 
-      // 自动轮播
-      autoPlay();
+      this.amount = children.length - 1;
+      this.autoPlay && autoPlay(); // 自动轮播
 
       this.on('touchstart', () => {
          this.autoPlay && clearTimeout(this.timeID);
@@ -82,62 +77,46 @@ export default function (options = {}) {
          this.el.style.transitionDuration = "0ms";
       })
 
-      this.on("touchmove", () => {
+      let slide = () => {
 
-         // 手势匹配成功
-         if (this.direction) {
+         // 为降低touch事件的非线性输出产生的精度误差，保存最后三个pageX用于位差运算
+         this.lastX = [this.lastX[1], this.lastX[2], this.pageX];
+         this.lastY = [this.lastY[1], this.lastY[2], this.pageY];
 
-            if (!this.loop) {
-               // 非循环模式下，末端使用缓速滑动
-               if (this.current === 0) {
-                  if (this.moveX > 0) this.moveX = this.moveX / this.damping;
-               } else if (this.current === this.amount) {
-                  if (this.moveX < 0) this.moveX = this.moveX / this.damping;
-               }
+         if (!this.loop) {
+            // 非循环模式下，末端使用缓速滑动
+            if (this.current === 0) {
+               if (this.moveX > 0) this.moveX = this.moveX / this.damping;
+            } else if (this.current === this.amount) {
+               if (this.moveX < 0) this.moveX = this.moveX / this.damping;
             }
-
-            this.translateX = this.translateStartX + this.moveX;
-            el.style.transform = `translateX(${this.translateX}px)`;
-
-            // 手势识别成功后的touchmove，供开发者调用
-            this.move && this.move.call(this);
-
          }
 
-         // 手势匹配阶段direction为undefined，失败后为false
-         else if (this.direction === undefined) {
+         this.translateX = this.translateStartX + this.moveX;
+         el.style.transform = `translateX(${this.translateX}px)`;
 
-            // 滑动方向判断，通过起点圆周判坐标比值判断
-            let moveX = Math.abs(this.moveX)
-            let moveY = Math.abs(this.moveY)
+         this.move && this.move.call(this);
 
-            // 超出滑动起始范围时锁定手势判断
-            if (moveX > this.gap || moveY > this.gap) {
+      }
 
-               if (moveY === 0) {
-                  this.direction = 1
-               } else {
-                  let difference = moveX / moveY
-                  if (difference > 5) {
-                     this.direction = 1
-                  }
-                  // 匹配失败
-                  else {
-                     this.direction = false
-                  }
-               }
-
-               // 初始滑动自由间隙补偿
-               if (this.moveX > 0) {
-                  this.startX += this.gap
-               } else if (this.moveX < 0) {
-                  this.startX -= this.gap
-               }
-
+      // 滑动方向判断
+      this.on("direction", () => {
+         let difference = Math.abs(this.moveX) - Math.abs(this.moveY)
+         // 横向滚动
+         if (difference > 10) {
+            if (this.moveX > 0) {
+               this.startX += 10
+            } else {
+               this.startX -= 10
             }
-
+            this.directionLock = true
+            this.on("touchmove", slide)
          }
-
+         // 纵向滚动
+         else if (difference < -10) {
+            this.directionLock = null
+            // this.on("touchmove", slide)
+         }
       })
 
       this.on("touchend", () => {
@@ -167,9 +146,7 @@ export default function (options = {}) {
          el.style.transitionDuration = "300ms";
          el.style.transitionTimingFunction = "ease-out";
 
-         this.direction = undefined
-
-         autoPlay();
+         this.autoPlay && autoPlay();
 
       })
 

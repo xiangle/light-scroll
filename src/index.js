@@ -16,59 +16,22 @@ class Touch {
       this.touchstart = []
       this.touchmove = []
       this.touchend = []
-      this.direction = []
    }
    start(func) {
-      this.touchstart.push(func);
+      this.on("touchstart", func)
       return this;
    }
    move(func) {
-      if (func) {
-         this.direction.push(() => {
-            this.touchmove.push(func.bind(this))
-         });
-      }
+      this.on("touchmove", func)
       return this;
    }
    end(func) {
-      if (func) {
-         this.touchend.push(func.bind(this));
-      }
-      return this;
-   }
-   transitionend(func) {
-      this.el.addEventListener("transitionend", ev => {
-         func || func(ev, this)
-         ev.preventDefault();
-      }, false);
-      return this;
-   }
-   animationstart(func) {
-      this.el.addEventListener("animationstart", ev => {
-         func || func(ev, this)
-         ev.preventDefault();
-      }, false);
-      return this;
-   }
-   animationiteration(func) {
-      this.el.addEventListener("animationiteration", ev => {
-         func || func(ev, this)
-         ev.preventDefault();
-      }, false);
-      return this;
-   }
-   animationend(func) {
-      this.el.addEventListener("animationend", ev => {
-         func || func(ev, this)
-         ev.preventDefault();
-      }, false);
+      this.on("touchend", func)
       return this;
    }
    on(name, func) {
-      if (this[name]) {
-         if (this[name] instanceof Array) {
-            this[name].push(func)
-         }
+      if (this[name] instanceof Array) {
+         if (func) this[name].push(func.bind(this))
       } else {
          this[name] = func
       }
@@ -94,7 +57,6 @@ export default function touchBox(el) {
 
    if (!el) return
 
-
    let touch = new Touch(el);
 
    el.addEventListener("touchstart", function (ev) {
@@ -107,7 +69,6 @@ export default function touchBox(el) {
       touch.emit('touchstart', ev)
    }, false);
 
-
    el.addEventListener("touchmove", function (ev) {
       ev.preventDefault();
       let [{ pageX, pageY }] = ev.changedTouches;
@@ -115,21 +76,19 @@ export default function touchBox(el) {
       touch.pageY = pageY;
       touch.moveX = pageX - touch.startX;
       touch.moveY = pageY - touch.startY;
-      // 如果touchmove数组不为空表示已经识别手势，不再重复判断手势。
-      if (touch.touchmove.length) {
-         touch.emit('touchmove', ev)
-      } else {
-         touch.emit('direction', ev)
-      }
+      // 为降低touch事件的非线性输出产生的精度误差，保留最后三个page用于位差运算
+      touch.lastX = [touch.lastX[1], touch.lastX[2], touch.pageX];
+      touch.lastY = [touch.lastY[1], touch.lastY[2], touch.pageY];
+      touch.emit('touchmove', ev)
    }, false);
 
 
    el.addEventListener("touchend", ev => {
       ev.preventDefault();
       touch.emit('touchend', ev)
-      touch.touchmove = [];
+      touch.lastX = [0, 0, 0]
+      touch.lastY = [0, 0, 0]
    }, false);
-
 
    return touch;
 
