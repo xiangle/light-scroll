@@ -1,8 +1,5 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.touchBox = factory());
-}(this, (function () { 'use strict';
+var touchBox = (function () {
+'use strict';
 
 let defaults = {
    distance: 5,
@@ -61,52 +58,48 @@ function slide (options = {}) {
 
    let { clientWidth, children, firstElementChild, lastElementChild } = el;
 
-   this.clientWidth = clientWidth;
-
    if (children.length) {
 
+      this.amount = children.length - 1;
+
+      this.totalWidth = clientWidth * children.length;
+
+      this.clientWidth = clientWidth;
+
       Object.assign(this, {
-         gap: 5,
+         slideGap: 5,
          loop: false,
          distance: 5,
-         autoPlay: 3000,
-         damping: 5,
+         autoPlay: 3600,
+         transitionDuration: 300,
+         damping: 6,
          position: 1,
       }, options);
 
       el.style.transitionProperty = `transform`;
-      el.style.transform = `translateX(0px)`;
 
-      // 循环模式时创建重叠闭环节点
+      // 如果只有一个子元素则关闭轮播
+      if (this.amount === 0) this.loop = false;
+
+      // 循环模式时创建闭环节点
       if (this.loop) {
-
-         this.current = this.position;
 
          // 首尾添加交叉重叠元素
          el.appendChild(firstElementChild.cloneNode(true));
          el.insertBefore(lastElementChild.cloneNode(true), el.children[0]);
-         el.style.transform = `translateX(${-clientWidth}px)`;
-
-         // 在过渡结束后，对重合元素进行换向操作
-         el.addEventListener("transitionend", () => {
-            if (this.current === 0) {
-               this.current = this.amount - 1;
-               let X = this.clientWidth * this.current;
-               el.style.transform = `translateX(${-X}px)`;
-               el.style.transitionDuration = "0ms";
-            } else if (this.current === this.amount) {
-               this.current = 1;
-               el.style.transform = `translateX(${-this.clientWidth}px)`;
-               el.style.transitionDuration = "0ms";
-            }
-         }, false);
+         this.amount += 2;
+         this.current = this.position;
 
       } else {
-         this.current = 0;
-         el.style.transform = `translateX(0px)`;
+
+         // 非循环模式下元素实际起始位从0开始
+         this.current = this.position - 1;
+
       }
 
-      this.amount = children.length - 1;
+      let translateX = this.clientWidth * this.current;
+
+      el.style.transform = `translateX(${-translateX}px)`;
 
       // 使用绝对定位，子节点相对父节点位置始终保持固定
       for (let i = 0; i < children.length; i++) {
@@ -116,6 +109,11 @@ function slide (options = {}) {
 
       let autoPlay = () => {
          if (this.autoPlay) {
+            if (this.current === this.amount) {
+               this.current = 1;
+               el.style.transform = `translateX(${-this.clientWidth}px)`;
+               el.style.transitionDuration = "0ms";
+            }
             this.timeID = setTimeout(() => {
                if (this.current < this.amount) {
                   let X = ++this.current * this.clientWidth;
@@ -133,8 +131,6 @@ function slide (options = {}) {
 
       this.on('touchstart', () => {
          this.autoPlay && clearTimeout(this.timeID);
-         let { transform } = getComputedStyle(this.el, null);
-         this.translateStartX = Number(transform.split(", ")[4]);
          this.el.style.transform = `translateX(${this.translateStartX}px)`;
          this.el.style.transitionDuration = "0ms";
       });
@@ -144,16 +140,40 @@ function slide (options = {}) {
          // 手势匹配成功
          if (this.direction) {
 
-            if (!this.loop) {
-               // 非循环模式下，末端使用缓速滑动
-               if (this.current === 0) {
-                  if (this.moveX > 0) this.moveX = this.moveX / this.damping;
-               } else if (this.current === this.amount) {
-                  if (this.moveX < 0) this.moveX = this.moveX / this.damping;
+            el.style.transitionDuration = "0ms";
+
+            if (this.loop) {
+
+               // 循环模式换向
+               this.translateX = this.translateStartX + this.moveX;
+               if (this.translateX >= 0) {
+                  this.current = this.amount - 1;
+                  this.translateX = -this.clientWidth * (this.amount - 1) + this.moveX;
+               } else if (this.translateX <= -this.clientWidth * this.amount) {
+                  this.current = 1;
+                  this.translateX = -this.clientWidth * 1 + this.moveX;
                }
+
+            } else {
+
+               // 非循环模式下，末端使用缓速滑动
+               if (this.amount) {
+                  if (this.current === 0) {
+                     if (this.moveX > 0) {
+                        this.moveX = this.moveX / this.damping;
+                     }
+                  } else if (this.current === this.amount) {
+                     if (this.moveX < 0) {
+                        this.moveX = this.moveX / this.damping;
+                     }
+                  }
+               } else {
+                  this.moveX = this.moveX / this.damping;
+               }
+               this.translateX = this.translateStartX + this.moveX;
+
             }
 
-            this.translateX = this.translateStartX + this.moveX;
             el.style.transform = `translateX(${this.translateX}px)`;
 
             // 手势识别成功后的touchmove，供开发者调用
@@ -169,13 +189,13 @@ function slide (options = {}) {
             let moveY = Math.abs(this.moveY);
 
             // 超出滑动起始范围时锁定手势判断
-            if (moveX > this.gap || moveY > this.gap) {
+            if (moveX > this.slideGap || moveY > this.slideGap) {
 
                if (moveY === 0) {
                   this.direction = 1;
                } else {
                   let difference = moveX / moveY;
-                  if (difference > 5) {
+                  if (difference > 1.5) {
                      this.direction = 1;
                   }
                   // 匹配失败
@@ -186,9 +206,9 @@ function slide (options = {}) {
 
                // 初始滑动自由间隙补偿
                if (this.moveX > 0) {
-                  this.startX += this.gap;
+                  this.startX += this.slideGap;
                } else if (this.moveX < 0) {
-                  this.startX -= this.gap;
+                  this.startX -= this.slideGap;
                }
 
             }
@@ -199,29 +219,63 @@ function slide (options = {}) {
 
       this.on("touchend", () => {
 
-         // 计算位移差值，使用移动端优先原则，忽略PC端touchend事件差异
-         let shiftX = this.lastX[2] - this.lastX[0];
-         if (shiftX > this.distance) {
-            if (this.loop) {
-               --this.current;
-            } else {
-               if (this.current > 0) {
-                  --this.current;
+         if (this.direction) {
+
+            this.translateX = this.translateStartX + this.moveX;
+
+            if (this.translateX > -this.clientWidth * this.current) {
+
+               // 计算位移差值，使用移动端优先原则，忽略PC端touchend事件差异
+               let shiftX = this.lastX[2] - this.lastX[0];
+               if (shiftX > this.distance) {
+                  if (this.loop) {
+                     --this.current;
+                  } else {
+                     if (this.current > 0) {
+                        --this.current;
+                     }
+                  }
+               } else if (shiftX < -this.distance) {
+                  if (this.loop) {
+                     ++this.current;
+                  } else {
+                     if (this.current < this.amount) {
+                        ++this.current;
+                     }
+                  }
+               }
+
+            } else if (this.translateX < -this.clientWidth * this.current) {
+
+               let shiftX = this.lastX[2] - this.lastX[0];
+               if (shiftX > this.distance) {
+                  if (this.loop) {
+                     --this.current;
+                  } else {
+                     if (this.current > 0) {
+                        --this.current;
+                     }
+                  }
+               } else if (shiftX < -this.distance) {
+                  if (this.loop) {
+                     ++this.current;
+                  } else {
+                     if (this.current < this.amount) {
+                        ++this.current;
+                     }
+                  }
                }
             }
-         } else if (shiftX < -this.distance) {
-            if (this.loop) {
-               ++this.current;
-            } else {
-               if (this.current < this.amount) {
-                  ++this.current;
-               }
-            }
+
+            // console.log(this.translateX < -this.clientWidth * this.current);
+            // console.log(this.translateX, this.clientWidth, this.current);
+            
          }
 
+         // 点击后释放自动返回目标位置
          let X = this.clientWidth * this.current;
          el.style.transform = `translateX(${-X}px)`;
-         el.style.transitionDuration = "300ms";
+         el.style.transitionDuration = `${this.transitionDuration}ms`;
          el.style.transitionTimingFunction = "ease-out";
 
          this.direction = undefined;
@@ -229,16 +283,10 @@ function slide (options = {}) {
          autoPlay();
 
       });
-
    }
 
    return this;
 
-}
-
-var extend = {
-   scroll,
-   slide,
 }
 
 class Touch {
@@ -276,17 +324,14 @@ class Touch {
       }
    }
    emit(name, ev) {
-      for (let item of this[name]) {
-         item(ev);
-      }
+      for (let item of this[name]) item(ev);
    }
 }
 
-for (let name in extend) {
-   Touch.prototype[name] = extend[name];
-}
+Touch.prototype.scroll = scroll;
+Touch.prototype.slide = slide;
 
-function touchBox(el) {
+function main (el) {
 
    if (typeof el === 'string') {
       el = document.querySelector(el);
@@ -305,6 +350,8 @@ function touchBox(el) {
       touch.startY = pageY;
       touch.pageX = pageX;
       touch.pageY = pageY;
+      touch.computedStyle = getComputedStyle(touch.el, null);
+      touch.translateStartX = Number(touch.computedStyle.transform.split(", ")[4]);
       touch.emit('touchstart', ev);
    }, false);
 
@@ -333,6 +380,6 @@ function touchBox(el) {
 
 }
 
-return touchBox;
+return main;
 
-})));
+}());

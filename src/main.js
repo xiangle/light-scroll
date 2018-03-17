@@ -1,6 +1,7 @@
 'use strict';
 
-import extend from './extend/index.js'
+import scroll from './extend/scroll'
+import slide from './extend/slide'
 
 class Touch {
    constructor(el) {
@@ -37,17 +38,14 @@ class Touch {
       }
    }
    emit(name, ev) {
-      for (let item of this[name]) {
-         item(ev)
-      }
+      for (let item of this[name]) item(ev);
    }
 }
 
-for (let name in extend) {
-   Touch.prototype[name] = extend[name]
-}
+Touch.prototype.scroll = scroll
+Touch.prototype.slide = slide
 
-export default function touchBox(el) {
+export default function (el) {
 
    if (typeof el === 'string') {
       el = document.querySelector(el);
@@ -66,7 +64,9 @@ export default function touchBox(el) {
       touch.startY = pageY;
       touch.pageX = pageX;
       touch.pageY = pageY;
-      touch.emit('touchstart', ev)
+      touch.computedStyle = getComputedStyle(touch.el, null);
+      touch.translateStartX = Number(touch.computedStyle.transform.split(", ")[4]);
+      touch.emit('touchstart', ev);
    }, false);
 
    el.addEventListener("touchmove", function (ev) {
@@ -79,15 +79,15 @@ export default function touchBox(el) {
       // 为降低touch事件的非线性输出产生的精度误差，保留最后三个page用于位差运算
       touch.lastX = [touch.lastX[1], touch.lastX[2], touch.pageX];
       touch.lastY = [touch.lastY[1], touch.lastY[2], touch.pageY];
-      touch.emit('touchmove', ev)
+      touch.emit('touchmove', ev);
    }, false);
 
 
    el.addEventListener("touchend", ev => {
       ev.preventDefault();
       touch.emit('touchend', ev)
-      touch.lastX = [0, 0, 0]
-      touch.lastY = [0, 0, 0]
+      touch.lastX = [0, 0, 0];
+      touch.lastY = [0, 0, 0];
    }, false);
 
    return touch;
