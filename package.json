@@ -1,6 +1,6 @@
 {
   "name": "touch-box",
-  "version": "1.0.9",
+  "version": "1.1.1",
   "description": "轻量级触控容器",
   "main": "src/main.js",
   "scripts": {

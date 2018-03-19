@@ -31,14 +31,17 @@ class Touch {
       return this;
    }
    on(name, func) {
+      if (!func) return
       if (this[name] instanceof Array) {
-         if (func) this[name].push(func.bind(this))
+         this[name].push(func.bind(this))
       } else {
          this[name] = func
       }
    }
    emit(name, ev) {
-      for (let item of this[name]) item(ev);
+      for (let item of this[name]) {
+         item(ev);
+      }
    }
 }
 

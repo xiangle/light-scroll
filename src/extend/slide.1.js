@@ -4,7 +4,7 @@ export default function (options = {}) {
 
    let { el } = this;
 
-   let { clientWidth, children, style, firstElementChild, lastElementChild } = el;
+   let { clientWidth, children, firstElementChild, lastElementChild } = el;
 
    if (children.length) {
 
@@ -24,7 +24,7 @@ export default function (options = {}) {
          position: 1,
       }, options);
 
-      style.transitionProperty = `transform`;
+      el.style.transitionProperty = `transform`;
 
       // 如果只有一个子元素则关闭轮播
       if (this.amount === 0) this.loop = false
@@ -34,7 +34,7 @@ export default function (options = {}) {
 
          // 首尾添加交叉重叠元素
          el.appendChild(firstElementChild.cloneNode(true));
-         el.insertBefore(lastElementChild.cloneNode(true), children[0]);
+         el.insertBefore(lastElementChild.cloneNode(true), el.children[0]);
          this.amount += 2;
          this.current = this.position;
 
@@ -47,32 +47,27 @@ export default function (options = {}) {
 
       let translateX = this.clientWidth * this.current;
 
-      style.transform = `translateX(${-translateX}px)`;
+      el.style.transform = `translateX(${-translateX}px)`;
 
-      style.width = `${children.length}00%`;
-
-      // 使用flex自动分配空间后，取消了js分配width
-      // let itemWidth = 100 / children.length
-      // for (let i = 0; i < children.length; i++) {
-      //    let item = children[i];
-      //    item.style.width = `${itemWidth}%`;
-      // }
+      // 使用绝对定位，子节点相对父节点位置始终保持固定
+      for (let i = 0; i < children.length; i++) {
+         let item = children[i];
+         item.style.left = `${i}00%`;
+      }
 
       let autoPlay = () => {
          if (this.autoPlay) {
-            // if (this.loop) {
-            //    if (this.current === this.amount) {
-            //       this.current = 1;
-            //       style.transform = `translateX(${-this.clientWidth}px)`;
-            //       style.transitionDuration = "0ms";
-            //    }
-            // }
+            if (this.current === this.amount) {
+               this.current = 1;
+               el.style.transform = `translateX(${-this.clientWidth}px)`;
+               el.style.transitionDuration = "0ms";
+            }
             this.timeID = setTimeout(() => {
                if (this.current < this.amount) {
                   let X = ++this.current * this.clientWidth;
-                  style.transitionDuration = "450ms";
-                  style.transitionTimingFunction = "ease";
-                  style.transform = `translateX(${-X}px)`;
+                  el.style.transitionDuration = "450ms";
+                  el.style.transitionTimingFunction = "ease";
+                  el.style.transform = `translateX(${-X}px)`;
                   autoPlay();
                }
             }, this.autoPlay);
@@ -84,8 +79,8 @@ export default function (options = {}) {
 
       this.on('touchstart', () => {
          this.autoPlay && clearTimeout(this.timeID);
-         style.transform = `translateX(${this.translateStartX}px)`;
-         style.transitionDuration = "0ms";
+         this.el.style.transform = `translateX(${this.translateStartX}px)`;
+         this.el.style.transitionDuration = "0ms";
       })
 
       this.on("touchmove", () => {
@@ -93,7 +88,7 @@ export default function (options = {}) {
          // 手势匹配成功
          if (this.direction) {
 
-            style.transitionDuration = "0ms";
+            el.style.transitionDuration = "0ms";
 
             if (this.loop) {
 
@@ -127,7 +122,7 @@ export default function (options = {}) {
 
             }
 
-            style.transform = `translateX(${this.translateX}px)`;
+            el.style.transform = `translateX(${this.translateX}px)`;
 
             // 手势识别成功后的touchmove，供开发者调用
             this.move && this.move.call(this);
@@ -222,14 +217,14 @@ export default function (options = {}) {
 
             // console.log(this.translateX < -this.clientWidth * this.current);
             // console.log(this.translateX, this.clientWidth, this.current);
-
+            
          }
 
          // 点击后释放自动返回目标位置
          let X = this.clientWidth * this.current;
-         style.transform = `translateX(${-X}px)`;
-         style.transitionDuration = `${this.transitionDuration}ms`;
-         style.transitionTimingFunction = "ease-out";
+         el.style.transform = `translateX(${-X}px)`;
+         el.style.transitionDuration = `${this.transitionDuration}ms`;
+         el.style.transitionTimingFunction = "ease-out";
 
          this.direction = undefined
 

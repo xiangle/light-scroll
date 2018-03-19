@@ -13,37 +13,20 @@
          overflow-x: hidden;
       }
 
-      .box {
-         width: 100%;
-         height: 140px;
-      }
-
       .slide {
          display: flex;
-         /* align-items: center; */
-         /* justify-content: center; */
          position: relative;
          transition-duration: 0ms;
-         font-size: 20px;
-         width: 100%;
       }
 
-      .slide * {
-         width: 100%;
-         display: block;
-         position: absolute;
-         left: 0;
-         top: 0;
-      }
-
-      .slide div {
+      .slide img {
          width: 100%;
       }
    </style>
 </head>
 
 <body>
-   <div class="box">
+   <div class="main">
       <div class="slide">
          <div>
             <img src="slide01.png">
@@ -60,16 +43,18 @@
    <script>
       window.addEventListener("load", function () {
 
-         let slide = touchBox('.slide').slide({ loop: false, autoPlay: false })
+         let slide = touchBox('.slide').slide({
+            loop: true,
+            autoPlay: 3000
+         })
 
          // slide.on('move', function () {
          //    console.log(666);
          // });
 
-         // touchBox('.x2')
-         //    .start(function (ev) {
-         //       console.log('start')
-         //    })
+         // slide.on('end', function (ev) {
+         //    console.log('start')
+         //})
 
       }, false);
 
