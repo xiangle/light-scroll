@@ -1,98 +1,125 @@
 'use strict';
 
+import Touch from './base'
 import scroll from './extend/scroll'
-import slide from './extend/slide'
-
-class Touch {
-   constructor(el) {
-      this.el = el
-      this.startX = 0
-      this.startY = 0
-      this.pageX = 0
-      this.pageY = 0
-      this.moveX = 0
-      this.moveY = 0
-      this.lastX = [0, 0, 0]
-      this.lastY = [0, 0, 0]
-      this.touchstart = []
-      this.touchmove = []
-      this.touchend = []
-   }
-   start(func) {
-      this.on("touchstart", func)
-      return this;
-   }
-   move(func) {
-      this.on("touchmove", func)
-      return this;
-   }
-   end(func) {
-      this.on("touchend", func)
-      return this;
-   }
-   on(name, func) {
-      if (!func) return
-      if (this[name] instanceof Array) {
-         this[name].push(func.bind(this))
-      } else {
-         this[name] = func
-      }
-   }
-   emit(name, ev) {
-      for (let item of this[name]) {
-         item(ev);
-      }
-   }
-}
+import swipe from './extend/swipe'
 
 Touch.prototype.scroll = scroll
-Touch.prototype.slide = slide
+Touch.prototype.swipe = swipe
 
+/**
+ * Touch选择器
+ * @param {String, DOM} el 指定事件容器父元素 
+ */
 export default function (el) {
 
    if (typeof el === 'string') {
-      el = document.querySelector(el);
-   } else if (typeof el !== 'object') {
+      el = document.querySelector(el)
+   }
+
+   if (!(el instanceof Object)) {
+      console.error('Touch容器不存在')
       return
    }
 
-   if (!el) return
+   if (!el.childElementCount) return
 
    let touch = new Touch(el);
 
-   el.addEventListener("touchstart", function (ev) {
-      ev.preventDefault();
-      let [{ pageX, pageY }] = ev.changedTouches;
-      touch.startX = pageX;
-      touch.startY = pageY;
-      touch.pageX = pageX;
-      touch.pageY = pageY;
-      touch.computedStyle = getComputedStyle(touch.el, null);
-      touch.translateStartX = Number(touch.computedStyle.transform.split(", ")[4]);
-      touch.emit('touchstart', ev);
-   }, false);
+   // 使用第一个子元素作为Touch容器
+   let container = touch.container
 
-   el.addEventListener("touchmove", function (ev) {
-      ev.preventDefault();
-      let [{ pageX, pageY }] = ev.changedTouches;
-      touch.pageX = pageX;
-      touch.pageY = pageY;
-      touch.moveX = pageX - touch.startX;
-      touch.moveY = pageY - touch.startY;
-      // 为降低touch事件的非线性输出产生的精度误差，保留最后三个page用于位差运算
-      touch.lastX = [touch.lastX[1], touch.lastX[2], touch.pageX];
-      touch.lastY = [touch.lastY[1], touch.lastY[2], touch.pageY];
-      touch.emit('touchmove', ev);
-   }, false);
+   // 支持touch时，优先使用touch
+   touch.isTouch = "ontouchend" in document
 
+   // 绑定Touch事件
+   if (touch.isTouch) {
 
-   el.addEventListener("touchend", ev => {
-      ev.preventDefault();
-      touch.emit('touchend', ev)
-      touch.lastX = [0, 0, 0];
-      touch.lastY = [0, 0, 0];
-   }, false);
+      container.addEventListener('touchstart', function (ev) {
 
-   return touch;
+         ev.preventDefault()
+
+         let [{ pageX, pageY }] = ev.changedTouches
+
+         touch.setStart(ev, pageX, pageY)
+
+      }, false)
+
+      container.addEventListener('touchmove', function (ev) {
+
+         ev.preventDefault()
+
+         if (touch.lock) return
+
+         let [{ pageX, pageY }] = ev.changedTouches;
+
+         touch.setMove(ev, pageX, pageY)
+
+      }, false)
+
+      container.addEventListener('touchend', ev => {
+
+         ev.preventDefault();
+
+         if (touch.lock) return
+
+         touch.setEnd(ev)
+
+      }, false)
+
+   }
+
+   // 绑定Mouse事件
+   else {
+
+      container.addEventListener('mousedown', function (ev) {
+
+         ev.preventDefault()
+
+         let { pageX, pageY } = ev
+
+         touch.setStart(ev, pageX, pageY)
+
+      }, false)
+
+      container.addEventListener('mousemove', function (ev) {
+
+         ev.preventDefault()
+
+         if (touch.lock) return
+
+         let { pageX, pageY } = ev
+
+         touch.setMove(ev, pageX, pageY)
+
+      }, false)
+
+      container.addEventListener('mouseup', ev => {
+
+         ev.preventDefault();
+
+         if (touch.lock) return
+
+         touch.setEnd(ev)
+
+         touch.lock = true
+
+      }, false)
+
+      container.addEventListener('mouseout', ev => {
+
+         ev.preventDefault();
+
+         if (touch.lock) return
+
+         touch.setEnd(ev)
+
+         touch.lock = true
+
+      }, false)
+
+   }
+
+   return touch
 
 }
