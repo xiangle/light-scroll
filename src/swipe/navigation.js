@@ -10,22 +10,24 @@ export default function (navigation) {
 
    if (!nextEl || !prevEl) return
 
-   nextEl = Tools.getElment(nextEl)
+   this.nextEl = Tools.getElment(nextEl)
 
-   prevEl = Tools.getElment(prevEl)
+   this.prevEl = Tools.getElment(prevEl)
 
-   if (!nextEl || !prevEl) {
+   if (!this.nextEl || !this.prevEl) {
       console.error('选择器找不到navigation元素')
       return
    }
 
-   nextEl.addEventListener('click', ev => {
-      this.next()
+   this.navigation = true
+   
+   this.prevEl.addEventListener('click', ev => {
+      this.prev()
       this.end()
    })
 
-   prevEl.addEventListener('click', ev => {
-      this.prev()
+   this.nextEl.addEventListener('click', ev => {
+      this.next()
       this.end()
    })
 

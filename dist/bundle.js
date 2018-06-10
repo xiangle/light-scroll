@@ -270,22 +270,24 @@ var touchBox = (function () {
 
       if (!nextEl || !prevEl) return
 
-      nextEl = Tools.getElment(nextEl);
+      this.nextEl = Tools.getElment(nextEl);
 
-      prevEl = Tools.getElment(prevEl);
+      this.prevEl = Tools.getElment(prevEl);
 
-      if (!nextEl || !prevEl) {
+      if (!this.nextEl || !this.prevEl) {
          console.error('选择器找不到navigation元素');
          return
       }
 
-      nextEl.addEventListener('click', ev => {
-         this.next();
+      this.navigation = true;
+      
+      this.prevEl.addEventListener('click', ev => {
+         this.prev();
          this.end();
       });
 
-      prevEl.addEventListener('click', ev => {
-         this.prev();
+      this.nextEl.addEventListener('click', ev => {
+         this.next();
          this.end();
       });
 
@@ -411,8 +413,17 @@ var touchBox = (function () {
                this.pid = childElementCount - 3;
             }
          } else {
-            if (this.pid > 0) {
+            if (this.pid > 1) {
                --this.pid;
+               if (this.navigation) {
+                  this.nextEl.style.display = 'block';
+                  this.prevEl.style.display = 'block';
+               }
+            } else if (this.pid === 1) {
+               --this.pid;
+               if (this.navigation) {
+                  this.prevEl.style.display = 'none';
+               }
             }
          }
       };
@@ -425,8 +436,18 @@ var touchBox = (function () {
                ++this.pid;
             }
          } else {
-            if (this.pid < childElementCount - 1) {
+            if (this.pid < childElementCount - 2) {
                ++this.pid;
+               if (this.navigation) {
+                  this.nextEl.style.display = 'block';
+                  this.prevEl.style.display = 'block';
+               }
+            }
+            else if (this.pid === childElementCount - 2) {
+               ++this.pid;
+               if (this.navigation) {
+                  this.nextEl.style.display = 'none';
+               }
             }
          }
       };
@@ -641,7 +662,7 @@ var touchBox = (function () {
 
    }
 
-   // touch扩展
+   // Touch扩展
    touchBox.use = function (name, func) {
       Base.prototype[name] = func;
    };

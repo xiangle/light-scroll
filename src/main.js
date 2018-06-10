@@ -118,7 +118,7 @@ export default function touchBox(el) {
 
 }
 
-// touch扩展
+// Touch扩展
 touchBox.use = function (name, func) {
    Base.prototype[name] = func
 }

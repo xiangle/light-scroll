@@ -138,8 +138,17 @@ export default function (options = {}) {
             this.pid = childElementCount - 3
          }
       } else {
-         if (this.pid > 0) {
+         if (this.pid > 1) {
             --this.pid;
+            if (this.navigation) {
+               this.nextEl.style.display = 'block'
+               this.prevEl.style.display = 'block'
+            }
+         } else if (this.pid === 1) {
+            --this.pid;
+            if (this.navigation) {
+               this.prevEl.style.display = 'none'
+            }
          }
       }
    }
@@ -152,8 +161,18 @@ export default function (options = {}) {
             ++this.pid
          }
       } else {
-         if (this.pid < childElementCount - 1) {
+         if (this.pid < childElementCount - 2) {
             ++this.pid
+            if (this.navigation) {
+               this.nextEl.style.display = 'block'
+               this.prevEl.style.display = 'block'
+            }
+         }
+         else if (this.pid === childElementCount - 2) {
+            ++this.pid
+            if (this.navigation) {
+               this.nextEl.style.display = 'none'
+            }
          }
       }
    }
