@@ -33,7 +33,6 @@ class Base {
       this.translateEndX = 0 // container横向位移终点
       this.translateEndY = 0 // container纵向位移终点
       this.damping = 6 // 滑动阻尼系数，用于末端缓速
-
    }
    /**
     * 属性混合

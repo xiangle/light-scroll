@@ -2,7 +2,7 @@
 
 let mixing = {
    loop: false, // 循环模式
-   autoPlay: 3600, // 自动轮播时间间隔
+   autoplay: 3600, // 自动轮播时间间隔
    transitionDuration: 200, // 动画过渡持续时间
    position: 1, // 卡片起始位置
 }
@@ -94,9 +94,9 @@ export default function (options = {}) {
       // }
    })
 
-   let autoPlay = () => {
+   let autoplay = () => {
 
-      if (this.autoPlay) {
+      if (this.autoplay) {
 
          // if (this.loop) {
          //    if (this.pid === childElementCount) {
@@ -111,21 +111,21 @@ export default function (options = {}) {
                this.translateEndX = ++this.pid * -WHV;
                style.transform = `translate3d(${this.translateEndX}px, 0px, 0px)`;
                style.transitionDuration = "450ms";
-               autoPlay();
+               autoplay();
             }
-         }, this.autoPlay);
+         }, this.autoplay);
 
       }
 
    }
 
    // 自动轮播
-   autoPlay();
+   // autoplay();
 
    this.on('touchstart', ev => {
 
       // 监听到触点时关闭轮播
-      if (this.autoPlay) {
+      if (this.autoplay) {
          clearTimeout(this.timeID)
       }
 
@@ -230,7 +230,7 @@ export default function (options = {}) {
       style.transform = `translate3d(${this.translateEndX}px, ${this.translateEndY}px, 0px)`
       style.transitionDuration = `${this.transitionDuration}ms`
 
-      autoPlay()
+      // autoplay()
 
    })
 

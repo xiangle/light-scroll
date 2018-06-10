@@ -48,6 +48,8 @@
                <img src="slide03.png">
             </li>
          </ul>
+         <div class="swiper-button-next"></div>
+         <div class="swiper-button-prev"></div>
       </div>
 
    </div>
@@ -57,10 +59,20 @@
 
          touchBox('.slide-box').swipe({
             direction: "level",
-            loop: true,
+            // loop: true,
             // position: 3,
-            autoPlay: false,
-            transitionDuration: 200
+            autoplay: {
+               delay: 2500,
+               disableOnInteraction: false,
+            },
+            transitionDuration: 200,
+            pagination: {
+               el: '.swiper-pagination',
+            },
+            navigation: {
+               nextEl: '.swiper-button-next',
+               prevEl: '.swiper-button-prev',
+            }
          })
 
       }, false)

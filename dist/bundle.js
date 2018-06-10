@@ -36,7 +36,6 @@ var touchBox = (function () {
          this.translateEndX = 0; // container横向位移终点
          this.translateEndY = 0; // container纵向位移终点
          this.damping = 6; // 滑动阻尼系数，用于末端缓速
-
       }
       /**
        * 属性混合
@@ -238,11 +237,12 @@ var touchBox = (function () {
       });
 
       return this;
+      
    }
 
    let mixing = {
       loop: false, // 循环模式
-      autoPlay: 3600, // 自动轮播时间间隔
+      autoplay: 3600, // 自动轮播时间间隔
       transitionDuration: 200, // 动画过渡持续时间
       position: 1, // 卡片起始位置
    };
@@ -334,38 +334,13 @@ var touchBox = (function () {
          // }
       });
 
-      let autoPlay = () => {
-
-         if (this.autoPlay) {
-
-            // if (this.loop) {
-            //    if (this.pid === childElementCount) {
-            //       this.pid = 1;
-            //       style.transform = `translate3d(${-WHV}px, 0px, 0px)`;
-            //       style.transitionDuration = "0ms";
-            //    }
-            // }
-
-            this.timeID = setTimeout(() => {
-               if (this.pid < childElementCount) {
-                  this.translateEndX = ++this.pid * -WHV;
-                  style.transform = `translate3d(${this.translateEndX}px, 0px, 0px)`;
-                  style.transitionDuration = "450ms";
-                  autoPlay();
-               }
-            }, this.autoPlay);
-
-         }
-
-      };
-
       // 自动轮播
-      autoPlay();
+      // autoplay();
 
       this.on('touchstart', ev => {
 
          // 监听到触点时关闭轮播
-         if (this.autoPlay) {
+         if (this.autoplay) {
             clearTimeout(this.timeID);
          }
 
@@ -470,7 +445,7 @@ var touchBox = (function () {
          style.transform = `translate3d(${this.translateEndX}px, ${this.translateEndY}px, 0px)`;
          style.transitionDuration = `${this.transitionDuration}ms`;
 
-         autoPlay();
+         // autoplay()
 
       });
 
@@ -485,14 +460,14 @@ var touchBox = (function () {
     * Touch选择器
     * @param {String, DOM} el 指定事件容器父元素 
     */
-   function main (el) {
+   function touchBox(el) {
 
       if (typeof el === 'string') {
          el = document.querySelector(el);
       }
 
       if (!(el instanceof Object)) {
-         console.error('Touch容器不存在');
+         console.error('[touch-box] Touch容器不存在');
          return
       }
 
@@ -598,6 +573,11 @@ var touchBox = (function () {
 
    }
 
-   return main;
+   // touch扩展
+   touchBox.use = function (name, func) {
+      Base.prototype[name] = func;
+   };
+
+   return touchBox;
 
 }());
