@@ -21,6 +21,7 @@
          width: 100%;
          height: 50%;
          overflow: hidden;
+         position: relative;
       }
 
       .slide-box li {
@@ -30,6 +31,23 @@
 
       .slide-box .content img {
          width: 100%;
+      }
+
+      .swiper-button-next,
+      .swiper-button-prev {
+         width: 30px;
+         height: 60px;
+         position: absolute;
+         background-color: #ccc;
+         top: 50%;
+      }
+
+      .swiper-button-prev {
+         left: 0;
+      }
+
+      .swiper-button-next {
+         right: 0;
       }
    </style>
 </head>
@@ -48,8 +66,8 @@
                <img src="slide03.png">
             </li>
          </ul>
-         <div class="swiper-button-next"></div>
          <div class="swiper-button-prev"></div>
+         <div class="swiper-button-next"></div>
       </div>
 
    </div>

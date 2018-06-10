@@ -20,7 +20,8 @@
       .slide-box {
          width: 100%;
          overflow: hidden;
-         height: 360px;
+         height: 250px;
+         position: relative;
       }
 
       .slide-box li {
@@ -30,6 +31,23 @@
 
       .slide-box .content img {
          width: 100%;
+      }
+
+      .swiper-button-next,
+      .swiper-button-prev {
+         width: 60px;
+         height: 30px;
+         position: absolute;
+         background-color: #ccc;
+         left: 50%;
+      }
+
+      .swiper-button-prev {
+         top: 0;
+      }
+
+      .swiper-button-next {
+         bottom: 0;
       }
    </style>
 </head>
@@ -49,6 +67,8 @@
                <img src="slide03.png">
             </li>
          </ul>
+         <div class="swiper-button-next"></div>
+         <div class="swiper-button-prev"></div>
       </div>
 
    </div>
@@ -58,9 +78,13 @@
 
          touchBox('.slide-box').swipe({
             direction: "vertical",
-            loop: true,
+            // loop: true,
             autoPlay: false,
-            transitionDuration: 200
+            transitionDuration: 200,
+            navigation: {
+               nextEl: '.swiper-button-next',
+               prevEl: '.swiper-button-prev',
+            }
          })
 
       }, false)

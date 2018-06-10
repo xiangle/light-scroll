@@ -77,7 +77,7 @@ class Base {
     * @param {Number} pageX
     * @param {Number} pageY
     */
-   setStart(ev, pageX, pageY) {
+   StartAgent(ev, pageX, pageY) {
 
       this.startX = pageX
       this.startY = pageY
@@ -104,7 +104,7 @@ class Base {
     * @param {Number} pageX
     * @param {Number} pageY
     */
-   setMove(ev, pageX, pageY) {
+   MoveAgent(ev, pageX, pageY) {
 
       this.pageX = pageX;
       this.pageY = pageY;
@@ -118,7 +118,7 @@ class Base {
    /**
     * 触点释放
     */
-   setEnd(ev) {
+   EndAgent(ev) {
 
       // 触点释放后的滑动方向判断
       // 计算触点释放时的位移差值，假设触发事件的时间周期固定，位移差可以间接反应位移速度
@@ -127,12 +127,12 @@ class Base {
 
       // 正向滑动
       if (this.shift > this.distance) {
-         this.emit('touchend-lt', ev)
+         this.emit('touchend-LT', ev)
       }
 
       // 反向滑动
       else if (this.shift < -this.distance) {
-         this.emit('touchend-rb', ev)
+         this.emit('touchend-RB', ev)
       }
 
       this.emit('touchend', ev)

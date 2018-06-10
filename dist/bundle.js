@@ -80,7 +80,7 @@ var touchBox = (function () {
        * @param {Number} pageX
        * @param {Number} pageY
        */
-      setStart(ev, pageX, pageY) {
+      StartAgent(ev, pageX, pageY) {
 
          this.startX = pageX;
          this.startY = pageY;
@@ -107,7 +107,7 @@ var touchBox = (function () {
        * @param {Number} pageX
        * @param {Number} pageY
        */
-      setMove(ev, pageX, pageY) {
+      MoveAgent(ev, pageX, pageY) {
 
          this.pageX = pageX;
          this.pageY = pageY;
@@ -121,7 +121,7 @@ var touchBox = (function () {
       /**
        * 触点释放
        */
-      setEnd(ev) {
+      EndAgent(ev) {
 
          // 触点释放后的滑动方向判断
          // 计算触点释放时的位移差值，假设触发事件的时间周期固定，位移差可以间接反应位移速度
@@ -130,12 +130,12 @@ var touchBox = (function () {
 
          // 正向滑动
          if (this.shift > this.distance) {
-            this.emit('touchend-lt', ev);
+            this.emit('touchend-LT', ev);
          }
 
          // 反向滑动
          else if (this.shift < -this.distance) {
-            this.emit('touchend-rb', ev);
+            this.emit('touchend-RB', ev);
          }
 
          this.emit('touchend', ev);
@@ -184,6 +184,28 @@ var touchBox = (function () {
             }
 
          }
+
+      }
+   }
+
+   var Tools = {
+      /**
+       * 通过css选择器获取元素
+       */
+      getElment(el, error) {
+
+         let elString;
+         if (typeof el === 'string') {
+            elString = el;
+            el = document.querySelector(el);
+         }
+
+         if (!(el instanceof Object)) {
+            console.error(error || `选择器${elString}未找到元素`);
+            return
+         }
+
+         return el
 
       }
    }
@@ -240,6 +262,45 @@ var touchBox = (function () {
       
    }
 
+   function navigation (navigation) {
+
+      if (!(navigation instanceof Object)) return
+
+      let { nextEl, prevEl } = navigation;
+
+      if (!nextEl || !prevEl) return
+
+      nextEl = Tools.getElment(nextEl);
+
+      prevEl = Tools.getElment(prevEl);
+
+      if (!nextEl || !prevEl) {
+         console.error('选择器找不到navigation元素');
+         return
+      }
+
+      nextEl.addEventListener('click', ev => {
+         this.next();
+         this.end();
+      });
+
+      prevEl.addEventListener('click', ev => {
+         this.prev();
+         this.end();
+      });
+
+   }
+
+   function pagination (pagination) {
+
+      if (!(pagination instanceof Object)) return
+
+      let { el } = pagination;
+      
+      if (!el) return
+
+   }
+
    let mixing = {
       loop: false, // 循环模式
       autoplay: 3600, // 自动轮播时间间隔
@@ -255,6 +316,12 @@ var touchBox = (function () {
    function swipe (options = {}) {
 
       this.mixing(mixing, options);
+
+      // 上一页、下一页导航
+      navigation.call(this, options.navigation);
+
+      // 分页导航
+      pagination.call(this, options.pagination);
 
       let { container, direction, dir, el } = this;
 
@@ -334,6 +401,43 @@ var touchBox = (function () {
          // }
       });
 
+      this.prev = () => {
+         if (this.loop) {
+            if (this.pid > 0) {
+               --this.pid;
+            }
+            // 换位
+            else {
+               this.pid = childElementCount - 3;
+            }
+         } else {
+            if (this.pid > 0) {
+               --this.pid;
+            }
+         }
+      };
+
+      this.next = () => {
+         if (this.loop) {
+            if (this.pid === childElementCount - 1) {
+               this.pid = 2;
+            } else {
+               ++this.pid;
+            }
+         } else {
+            if (this.pid < childElementCount - 1) {
+               ++this.pid;
+            }
+         }
+      };
+
+      this.end = () => {
+         // 触点释放时自动回归
+         this["translateEnd" + dir] = -(WHV * this.pid);
+         style.transform = `translate3d(${this.translateEndX}px, ${this.translateEndY}px, 0px)`;
+         style.transitionDuration = `${this.transitionDuration}ms`;
+      };
+
       // 自动轮播
       // autoplay();
 
@@ -407,43 +511,14 @@ var touchBox = (function () {
       });
 
       // touchend左上
-      this.on("touchend-lt", ev => {
-         if (this.loop) {
-            if (this.pid > 0) {
-               --this.pid;
-            }
-            // 换位
-            else {
-               this.pid = childElementCount - 3;
-            }
-         } else {
-            if (this.pid > 0) {
-               --this.pid;
-            }
-         }
-      });
+      this.on("touchend-LT", this.prev);
 
       // touchend右下
-      this.on("touchend-rb", ev => {
-         if (this.loop) {
-            if (this.pid === childElementCount - 1) {
-               this.pid = 2;
-            } else {
-               ++this.pid;
-            }
-         } else {
-            if (this.pid < childElementCount - 1) {
-               ++this.pid;
-            }
-         }
-      });
+      this.on("touchend-RB", this.next);
 
       this.on("touchend", ev => {
 
-         // 触点释放时自动回归
-         this["translateEnd" + dir] = -(WHV * this.pid);
-         style.transform = `translate3d(${this.translateEndX}px, ${this.translateEndY}px, 0px)`;
-         style.transitionDuration = `${this.transitionDuration}ms`;
+         this.end();
 
          // autoplay()
 
@@ -462,16 +537,9 @@ var touchBox = (function () {
     */
    function touchBox(el) {
 
-      if (typeof el === 'string') {
-         el = document.querySelector(el);
-      }
+      el = Tools.getElment(el);
 
-      if (!(el instanceof Object)) {
-         console.error('[touch-box] Touch容器不存在');
-         return
-      }
-
-      if (!el.childElementCount) return
+      if (!el || !el.childElementCount) return
 
       let touch = new Base(el);
 
@@ -490,7 +558,7 @@ var touchBox = (function () {
 
             let [{ pageX, pageY }] = ev.changedTouches;
 
-            touch.setStart(ev, pageX, pageY);
+            touch.StartAgent(ev, pageX, pageY);
 
          }, false);
 
@@ -502,7 +570,7 @@ var touchBox = (function () {
 
             let [{ pageX, pageY }] = ev.changedTouches;
 
-            touch.setMove(ev, pageX, pageY);
+            touch.MoveAgent(ev, pageX, pageY);
 
          }, false);
 
@@ -512,7 +580,7 @@ var touchBox = (function () {
 
             if (touch.lock) return
 
-            touch.setEnd(ev);
+            touch.EndAgent(ev);
 
          }, false);
 
@@ -527,7 +595,7 @@ var touchBox = (function () {
 
             let { pageX, pageY } = ev;
 
-            touch.setStart(ev, pageX, pageY);
+            touch.StartAgent(ev, pageX, pageY);
 
          }, false);
 
@@ -539,7 +607,7 @@ var touchBox = (function () {
 
             let { pageX, pageY } = ev;
 
-            touch.setMove(ev, pageX, pageY);
+            touch.MoveAgent(ev, pageX, pageY);
 
          }, false);
 
@@ -549,7 +617,7 @@ var touchBox = (function () {
 
             if (touch.lock) return
 
-            touch.setEnd(ev);
+            touch.EndAgent(ev);
 
             touch.lock = true;
 
@@ -561,7 +629,7 @@ var touchBox = (function () {
 
             if (touch.lock) return
 
-            touch.setEnd(ev);
+            touch.EndAgent(ev);
 
             touch.lock = true;
 

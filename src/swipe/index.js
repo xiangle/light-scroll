@@ -1,5 +1,8 @@
 'use strict';
 
+import navigation from './navigation'
+import pagination from './pagination'
+
 let mixing = {
    loop: false, // 循环模式
    autoplay: 3600, // 自动轮播时间间隔
@@ -15,6 +18,12 @@ let mixing = {
 export default function (options = {}) {
 
    this.mixing(mixing, options)
+
+   // 上一页、下一页导航
+   navigation.call(this, options.navigation)
+
+   // 分页导航
+   pagination.call(this, options.pagination)
 
    let { container, direction, dir, el } = this
 
@@ -119,6 +128,43 @@ export default function (options = {}) {
 
    }
 
+   this.prev = () => {
+      if (this.loop) {
+         if (this.pid > 0) {
+            --this.pid
+         }
+         // 换位
+         else {
+            this.pid = childElementCount - 3
+         }
+      } else {
+         if (this.pid > 0) {
+            --this.pid;
+         }
+      }
+   }
+
+   this.next = () => {
+      if (this.loop) {
+         if (this.pid === childElementCount - 1) {
+            this.pid = 2
+         } else {
+            ++this.pid
+         }
+      } else {
+         if (this.pid < childElementCount - 1) {
+            ++this.pid
+         }
+      }
+   }
+
+   this.end = () => {
+      // 触点释放时自动回归
+      this["translateEnd" + dir] = -(WHV * this.pid)
+      style.transform = `translate3d(${this.translateEndX}px, ${this.translateEndY}px, 0px)`
+      style.transitionDuration = `${this.transitionDuration}ms`
+   }
+
    // 自动轮播
    // autoplay();
 
@@ -192,43 +238,14 @@ export default function (options = {}) {
    })
 
    // touchend左上
-   this.on("touchend-lt", ev => {
-      if (this.loop) {
-         if (this.pid > 0) {
-            --this.pid
-         }
-         // 换位
-         else {
-            this.pid = childElementCount - 3
-         }
-      } else {
-         if (this.pid > 0) {
-            --this.pid;
-         }
-      }
-   })
+   this.on("touchend-LT", this.prev)
 
    // touchend右下
-   this.on("touchend-rb", ev => {
-      if (this.loop) {
-         if (this.pid === childElementCount - 1) {
-            this.pid = 2
-         } else {
-            ++this.pid
-         }
-      } else {
-         if (this.pid < childElementCount - 1) {
-            ++this.pid
-         }
-      }
-   })
+   this.on("touchend-RB", this.next)
 
    this.on("touchend", ev => {
 
-      // 触点释放时自动回归
-      this["translateEnd" + dir] = -(WHV * this.pid)
-      style.transform = `translate3d(${this.translateEndX}px, ${this.translateEndY}px, 0px)`
-      style.transitionDuration = `${this.transitionDuration}ms`
+      this.end()
 
       // autoplay()
 

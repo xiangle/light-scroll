@@ -1,6 +1,7 @@
 'use strict';
 
 import Base from './base'
+import Tools from './tools'
 import scroll from './scroll/index'
 import swipe from './swipe/index'
 
@@ -13,16 +14,9 @@ Base.prototype.swipe = swipe
  */
 export default function touchBox(el) {
 
-   if (typeof el === 'string') {
-      el = document.querySelector(el)
-   }
+   el = Tools.getElment(el)
 
-   if (!(el instanceof Object)) {
-      console.error('[touch-box] Touch容器不存在')
-      return
-   }
-
-   if (!el.childElementCount) return
+   if (!el || !el.childElementCount) return
 
    let touch = new Base(el);
 
@@ -41,7 +35,7 @@ export default function touchBox(el) {
 
          let [{ pageX, pageY }] = ev.changedTouches
 
-         touch.setStart(ev, pageX, pageY)
+         touch.StartAgent(ev, pageX, pageY)
 
       }, false)
 
@@ -53,7 +47,7 @@ export default function touchBox(el) {
 
          let [{ pageX, pageY }] = ev.changedTouches;
 
-         touch.setMove(ev, pageX, pageY)
+         touch.MoveAgent(ev, pageX, pageY)
 
       }, false)
 
@@ -63,7 +57,7 @@ export default function touchBox(el) {
 
          if (touch.lock) return
 
-         touch.setEnd(ev)
+         touch.EndAgent(ev)
 
       }, false)
 
@@ -78,7 +72,7 @@ export default function touchBox(el) {
 
          let { pageX, pageY } = ev
 
-         touch.setStart(ev, pageX, pageY)
+         touch.StartAgent(ev, pageX, pageY)
 
       }, false)
 
@@ -90,7 +84,7 @@ export default function touchBox(el) {
 
          let { pageX, pageY } = ev
 
-         touch.setMove(ev, pageX, pageY)
+         touch.MoveAgent(ev, pageX, pageY)
 
       }, false)
 
@@ -100,7 +94,7 @@ export default function touchBox(el) {
 
          if (touch.lock) return
 
-         touch.setEnd(ev)
+         touch.EndAgent(ev)
 
          touch.lock = true
 
@@ -112,7 +106,7 @@ export default function touchBox(el) {
 
          if (touch.lock) return
 
-         touch.setEnd(ev)
+         touch.EndAgent(ev)
 
          touch.lock = true
 
