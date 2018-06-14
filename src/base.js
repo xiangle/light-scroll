@@ -3,12 +3,11 @@
  */
 class Base {
    /**
-    * Touch容器DOM对象
-    * @param {Dom} el 
+    * @param {Dom} el Touch事件容器
     */
    constructor(el) {
       this.el = el
-      this.container = el.children[0] // Touch容器Dom对象
+      this.container = el.children[0] // Touch内容容器，使用第一个子元素
       this.startX = 0 // 起始X坐标
       this.startY = 0 // 起始Y坐标
       this.pageX = 0 // 滑动X坐标
@@ -33,6 +32,98 @@ class Base {
       this.translateEndX = 0 // container横向位移终点
       this.translateEndY = 0 // container纵向位移终点
       this.damping = 6 // 滑动阻尼系数，用于末端缓速
+      this.addEventListener()
+   }
+   /**
+    * 添加事件监听
+    */
+   addEventListener() {
+
+      // 是否支持touch，优先使用touch模式
+      this.isTouch = ("ontouchstart" in document)
+
+      // 绑定Touch事件
+      if (this.isTouch) {
+
+         this.el.addEventListener('touchstart', ev => {
+
+            let [{ pageX, pageY }] = ev.changedTouches
+
+            this.StartAgent(ev, pageX, pageY)
+
+         }, false)
+
+         this.el.addEventListener('touchmove', ev => {
+
+            if (this.lock) return
+
+            let [{ pageX, pageY }] = ev.changedTouches;
+
+            this.MoveAgent(ev, pageX, pageY)
+
+         }, false)
+
+         this.el.addEventListener('touchend', ev => {
+
+            if (this.lock) return
+
+            this.EndAgent(ev)
+
+         }, false)
+
+      }
+
+      // 绑定Mouse事件
+      else {
+
+         this.el.addEventListener('mousedown', ev => {
+
+            ev.preventDefault()
+
+            let { pageX, pageY } = ev
+
+            this.StartAgent(ev, pageX, pageY)
+
+         }, false)
+
+         this.el.addEventListener('mousemove', ev => {
+
+            ev.preventDefault()
+
+            if (this.lock) return
+
+            let { pageX, pageY } = ev
+
+            this.MoveAgent(ev, pageX, pageY)
+
+         }, false)
+
+         this.el.addEventListener('mouseup', ev => {
+
+            ev.preventDefault();
+
+            if (this.lock) return
+
+            this.EndAgent(ev)
+
+            this.lock = true
+
+         }, false)
+
+         this.el.addEventListener('mouseout', ev => {
+
+            ev.preventDefault();
+
+            if (this.lock) return
+
+            this.EndAgent(ev)
+
+            this.lock = true
+
+         }, false)
+
+      }
+
    }
    /**
     * 属性混合
