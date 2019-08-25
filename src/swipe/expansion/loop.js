@@ -1,13 +1,15 @@
+const disableButton = 'swiper-button-disable';
+
 export default {
    name: "loop",
-   values: {
+   options: {
       true: {
          /**
           * 初始化
           */
          initial() {
 
-            let { children, firstElementChild, lastElementChild } = this.container;
+            const { children, firstElementChild, lastElementChild } = this.container;
 
             // 首尾添加交叉重叠元素
             this.container.appendChild(firstElementChild.cloneNode(true));
@@ -44,45 +46,44 @@ export default {
           */
          touchmove({ move, translateStart, dir, complement, WHV, containerWHV }) {
 
-            let translate = translateStart + move
+            const translate = translateStart + move;
 
             // 正向切换
             if (translate >= 0) {
-               this["translate" + dir] = translate + -complement
+               this["translate" + dir] = translate + -complement;
             }
 
             // 反向切换
             else if (translate <= -containerWHV - -WHV) {
-               this["translate" + dir] = translate + complement
+               this["translate" + dir] = translate + complement;
             }
 
             // 居间
             else {
-               this["translate" + dir] = translate
+               this["translate" + dir] = translate;
             }
 
          },
          /**
           * 导航
           */
-         navigation() {}
+         navigation() { }
       },
       false: {
          initial() {
-            // 非循环模式下元素起始位从0开始
-            this.pid = this.position - 1;
+            this.pid = this.position - 1; // 非循环模式下元素起始位从0开始
          },
          prev() {
             if (this.pid > 1) {
                --this.pid;
                if (this.navigation) {
-                  this.nextEl.style.display = 'block'
-                  this.prevEl.style.display = 'block'
+                  this.nextEl.classList.remove(disableButton);
+                  this.prevEl.classList.remove(disableButton);
                }
             } else if (this.pid === 1) {
                --this.pid;
                if (this.navigation) {
-                  this.prevEl.style.display = 'none'
+                  this.prevEl.classList.add(disableButton);
                }
             }
          },
@@ -90,36 +91,37 @@ export default {
             if (this.pid < this.elementCount - 2) {
                ++this.pid
                if (this.navigation) {
-                  this.nextEl.style.display = 'block'
-                  this.prevEl.style.display = 'block'
+                  this.nextEl.classList.remove(disableButton);
+                  this.prevEl.classList.remove(disableButton);
                }
             }
             else if (this.pid === this.elementCount - 2) {
                ++this.pid
                if (this.navigation) {
-                  this.nextEl.style.display = 'none'
+                  this.nextEl.classList.add(disableButton);
                }
             }
          },
          touchmove({ move, translateStart, dir }) {
             // 右端滑动
             if (move > 0 && this.pid === 0) {
-               move = move / this.damping
+               move = move / this.damping;
             }
 
             // 左端滑动
             else if (move < 0 && this.pid === this.elementCount - 1) {
-               move = move / this.damping
+               move = move / this.damping;
             }
 
-            this["translate" + dir] = translateStart + move
+            this["translate" + dir] = translateStart + move;
+
          },
          navigation() {
             if (this.pid === 0) {
-               this.prevEl.style.display = 'none';
+               this.prevEl.classList.add(disableButton);
             }
             if (this.pid === this.elementCount - 1) {
-               this.nextEl.style.display = 'none';
+               this.nextEl.classList.add(disableButton);
             }
          }
       }

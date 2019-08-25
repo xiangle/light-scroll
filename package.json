@@ -2,9 +2,10 @@
   "name": "touch-box",
   "version": "1.1.1",
   "description": "轻量级触控容器",
-  "main": "src/main.js",
+  "main": "src/index.js",
   "scripts": {
-    "dev": "rollup src/main.js -o dist/bundle.js -f iife -n touchBox -w"
+    "dev": "rollup src/index.js -o dist/bundle.js -f iife -n TouchBox -w",
+    "serve": "serve"
   },
   "devDependencies": {
     "rollup": "^0.54.1",

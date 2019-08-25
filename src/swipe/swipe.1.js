@@ -1,6 +1,6 @@
 'use strict';
 
-let mixing = {
+const mixing = {
    loop: false,
    autoPlay: 3600,
    transitionDuration: 300,
@@ -17,16 +17,16 @@ export default function (options = {}) {
 
    Object.assign(this, mixing, options);
 
-   let { touchBox } = this;
+   const { touchBox } = this;
 
-   let { children, clientWidth, childElementCount, style, firstElementChild, lastElementChild } = touchBox;
+   const { children, clientWidth, childElementCount, style, firstElementChild, lastElementChild } = touchBox;
 
    if (childElementCount) {
 
       style.transitionDuration = '0ms'
 
       // 子集批量添加Style样式
-      for (let item of children) {
+      for (const item of children) {
          item.style.width = clientWidth + 'px'
          item.style.overflow = 'hidden'
          item.style.float = 'left'
@@ -54,11 +54,11 @@ export default function (options = {}) {
 
       }
 
-      let touchBoxWidth = clientWidth * childElementCount;
+      const touchBoxWidth = clientWidth * childElementCount;
 
       style.width = touchBoxWidth + 'px';
 
-      let autoPlay = () => {
+      const autoPlay = () => {
 
          if (this.autoPlay) {
 
@@ -72,7 +72,7 @@ export default function (options = {}) {
 
             this.timeID = setTimeout(() => {
                if (this.pid < childElementCount) {
-                  let X = ++this.pid * clientWidth;
+                  const X = ++this.pid * clientWidth;
                   style.transitionDuration = "450ms";
                   // style.transitionTimingFunction = "ease";
                   style.transform = `translate3d(${-X}px, 0px, 0px)`;
@@ -88,7 +88,7 @@ export default function (options = {}) {
       autoPlay();
 
       // 换向补位
-      let complement = clientWidth * (childElementCount - 2)
+      const complement = clientWidth * (childElementCount - 2);
 
       this.on('touchstart', ev => {
 
@@ -115,7 +115,7 @@ export default function (options = {}) {
          // 循环模式，重合点切换
          if (this.loop) {
 
-            this.translateX = this.translateStartX + this.moveX
+            this.translateX = this.translateStartX + this.moveX;
 
             // 正向切换
             if (this.translateX >= 0) {
@@ -221,7 +221,7 @@ export default function (options = {}) {
       this.on("touchend", ev => {
 
          // 触点释放时自动回归
-         let X = -(clientWidth * this.pid)
+         const X = -(clientWidth * this.pid)
          style.transform = `translate3d(${X}px, 0px, 0px)`
          style.transitionDuration = `${this.transitionDuration}ms`
          // style.transitionTimingFunction = "ease-out"

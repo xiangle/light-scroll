@@ -1,51 +1,55 @@
-let defaults = {
+const defaults = {
    distance: 5,
    damping: 5,
 }
 
-export default function (options = {}) {
+export default function scroll(options = {}) {
 
-   Object.assign(options, defaults);
+   return function (ctx) {
 
-   let autoPlay = () => {
-      this.timeID = setTimeout(() => {
-         if (this.current < this.amount) {
-            let X = ++this.current * this.clientWidth;
-            this.el.style.transitionDuration = "450ms";
-            this.el.style.transitionTimingFunction = "ease";
-            this.el.style.transform = `translateX(${-X}px)`;
-            this.carousel();
-         }
-      }, options.autoPlay);
-   }
+      Object.assign(options, defaults);
 
-   let scrollX = () => {
-      this.translateX = this.translateStartX + this.moveX;
-      this.el.style.transform = `translateX(${this.translateX}px)`;
-      options.move && options.move.call(this);
-   }
-
-   this.el.style.transform = `translateX(0px)`;
-
-   this.touchstart.push(() => {
-      let { transform } = getComputedStyle(this.el, null);
-      this.translateStartX = Number(transform.split(", ")[4]);
-   });
-
-   this.gesture.push(() => {
-      if (this.moveY) {
-         if (Math.abs(this.moveX / this.moveY) > 4) {
-            this.touchmove.push(scrollX)
-         }
-      } else {
-         this.touchmove.push(scrollX)
+      const autoPlay = () => {
+         ctx.timeID = setTimeout(() => {
+            if (ctx.current < ctx.amount) {
+               const X = ++ctx.current * ctx.clientWidth;
+               ctx.el.style.transitionDuration = "450ms";
+               ctx.el.style.transitionTimingFunction = "ease";
+               ctx.el.style.transform = `translateX(${-X}px)`;
+               ctx.carousel();
+            }
+         }, options.autoPlay);
       }
-   });
 
-   this.touchend.push(() => {
-      options.autoPlay && autoPlay();
-   });
+      const scrollX = () => {
+         ctx.translateX = ctx.translateStartX + ctx.moveX;
+         ctx.el.style.transform = `translateX(${ctx.translateX}px)`;
+         options.move && options.move.call(ctx);
+      }
 
-   return this;
-   
+      ctx.el.style.transform = `translateX(0px)`;
+
+      ctx.touchstart.push(() => {
+         const { transform } = getComputedStyle(ctx.el, null);
+         ctx.translateStartX = Number(transform.split(", ")[4]);
+      });
+
+      ctx.gesture.push(() => {
+         if (ctx.moveY) {
+            if (Math.abs(ctx.moveX / ctx.moveY) > 4) {
+               ctx.touchmove.push(scrollX)
+            }
+         } else {
+            ctx.touchmove.push(scrollX)
+         }
+      });
+
+      ctx.touchend.push(() => {
+         options.autoPlay && autoPlay();
+      });
+
+      return ctx;
+
+   }
+
 }

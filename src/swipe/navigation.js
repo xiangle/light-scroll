@@ -1,6 +1,6 @@
 'use strict';
 
-import Tools from '../tools'
+import helper from '../helper.js'
 
 /**
  * 翻页导航
@@ -8,40 +8,46 @@ import Tools from '../tools'
  */
 export default function (navigation) {
 
-   if (!(navigation instanceof Object)) return
+   if (!(navigation instanceof Object)) return;
 
-   let { prevEl, nextEl } = navigation
+   return function (ctx) {
 
-   if (!prevEl || !nextEl) return
+      ctx.navigation =navigation;
 
-   this.prevEl = Tools.getElment(prevEl)
+      const { prevEl, nextEl } = navigation;
 
-   this.nextEl = Tools.getElment(nextEl)
+      if (!prevEl || !nextEl) return
 
-   if (!this.prevEl || !this.nextEl) {
-      console.error('选择器找不到navigation元素')
-      return
+      ctx.prevEl = helper.getElment(prevEl);
+
+      ctx.nextEl = helper.getElment(nextEl);
+
+      if (!ctx.prevEl || !ctx.nextEl) {
+         console.error('选择器找不到navigation元素')
+         return
+      }
+
+      if (ctx.elementCount > 1) {
+         ctx.navigation = true
+      } else {
+         ctx.navigation = false;
+         ctx.prevEl.style.display = 'none';
+         ctx.nextEl.style.display = 'none';
+         return
+      }
+
+      ctx.$loop_navigation()
+
+      ctx.prevEl.addEventListener('click', ev => {
+         ctx.prev()
+         ctx.end()
+      })
+
+      ctx.nextEl.addEventListener('click', ev => {
+         ctx.next()
+         ctx.end()
+      })
+
    }
-
-   if (this.elementCount > 1) {
-      this.navigation = true
-   } else {
-      this.navigation = false
-      this.prevEl.style.display = 'none';
-      this.nextEl.style.display = 'none';
-      return
-   }
-
-   this.$loop_navigation()
-
-   this.prevEl.addEventListener('click', ev => {
-      this.prev()
-      this.end()
-   })
-
-   this.nextEl.addEventListener('click', ev => {
-      this.next()
-      this.end()
-   })
 
 }

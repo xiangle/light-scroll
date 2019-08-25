@@ -1,11 +1,15 @@
-/**
- * 事件基类
- */
-class Base {
+'use strict';
+
+import helper from './helper.js';
+
+export default class {
    /**
     * @param {Dom} el Touch事件容器
     */
-   constructor(el) {
+   constructor(element) {
+
+      const el = helper.getElment(element)
+
       this.el = el
       this.container = el.children[0] // Touch内容容器，使用第一个子元素
       this.startX = 0 // 起始X坐标
@@ -32,7 +36,8 @@ class Base {
       this.translateEndX = 0 // container横向位移终点
       this.translateEndY = 0 // container纵向位移终点
       this.damping = 6 // 滑动阻尼系数，用于末端缓速
-      this.addEventListener()
+
+      this.addEventListener();
    }
    /**
     * 添加事件监听
@@ -40,34 +45,36 @@ class Base {
    addEventListener() {
 
       // 是否支持touch，优先使用touch模式
-      this.isTouch = ("ontouchstart" in document)
+      this.isTouch = ("ontouchstart" in document);
+
+      const { el } = this;
 
       // 绑定Touch事件
       if (this.isTouch) {
 
-         this.el.addEventListener('touchstart', ev => {
+         el.addEventListener('touchstart', ev => {
 
-            let [{ pageX, pageY }] = ev.changedTouches
+            const [{ pageX, pageY }] = ev.changedTouches;
 
-            this.StartAgent(ev, pageX, pageY)
-
-         }, false)
-
-         this.el.addEventListener('touchmove', ev => {
-
-            if (this.lock) return
-
-            let [{ pageX, pageY }] = ev.changedTouches;
-
-            this.MoveAgent(ev, pageX, pageY)
+            this.startAgent(ev, pageX, pageY);
 
          }, false)
 
-         this.el.addEventListener('touchend', ev => {
+         el.addEventListener('touchmove', ev => {
 
             if (this.lock) return
 
-            this.EndAgent(ev)
+            const [{ pageX, pageY }] = ev.changedTouches;
+
+            this.moveAgent(ev, pageX, pageY);
+
+         }, false)
+
+         el.addEventListener('touchend', ev => {
+
+            if (this.lock) return
+
+            this.endAgent(ev)
 
          }, false)
 
@@ -76,47 +83,47 @@ class Base {
       // 绑定Mouse事件
       else {
 
-         this.el.addEventListener('mousedown', ev => {
+         el.addEventListener('mousedown', ev => {
 
             ev.preventDefault()
 
-            let { pageX, pageY } = ev
+            const { pageX, pageY } = ev;
 
-            this.StartAgent(ev, pageX, pageY)
-
-         }, false)
-
-         this.el.addEventListener('mousemove', ev => {
-
-            ev.preventDefault()
-
-            if (this.lock) return
-
-            let { pageX, pageY } = ev
-
-            this.MoveAgent(ev, pageX, pageY)
+            this.startAgent(ev, pageX, pageY)
 
          }, false)
 
-         this.el.addEventListener('mouseup', ev => {
+         el.addEventListener('mousemove', ev => {
+
+            ev.preventDefault();
+
+            if (this.lock) return;
+
+            const { pageX, pageY } = ev;
+
+            this.moveAgent(ev, pageX, pageY)
+
+         }, false)
+
+         el.addEventListener('mouseup', ev => {
 
             ev.preventDefault();
 
             if (this.lock) return
 
-            this.EndAgent(ev)
+            this.endAgent(ev);
 
-            this.lock = true
+            this.lock = true;
 
          }, false)
 
-         this.el.addEventListener('mouseout', ev => {
+         el.addEventListener('mouseout', ev => {
 
             ev.preventDefault();
 
             if (this.lock) return
 
-            this.EndAgent(ev)
+            this.endAgent(ev)
 
             this.lock = true
 
@@ -129,12 +136,14 @@ class Base {
     * 属性混合
     */
    mixing(...options) {
+
       Object.assign(this, ...options);
       if (this.direction === 'level') {
-         this.dir = 'X'
+         this.dir = 'X';
       } else {
-         this.dir = 'Y'
+         this.dir = 'Y';
       }
+
    }
    /**
     * 事件订阅
@@ -142,17 +151,21 @@ class Base {
     * @param {*} func 订阅事件回调函数
     */
    on(name, func) {
-      if (!this[name]) this[name] = []
+
+      if (!this[name]) this[name] = [];
+
       if (func instanceof Function) {
          this[name].push(func.bind(this))
       } else {
          console.error(`['touch-box'] ${name}事件添加失败，回调必须为函数类型`)
       }
+
       return this;
+
    }
    /**
     * 事件发送
-    * @param {*} name 发送事件名称
+    * @param {String} name 发送事件名称
     * @param {*} ev 发送事件内容
     */
    emit(name, ev) {
@@ -168,23 +181,23 @@ class Base {
     * @param {Number} pageX
     * @param {Number} pageY
     */
-   StartAgent(ev, pageX, pageY) {
+   startAgent(ev, pageX, pageY) {
 
-      this.startX = pageX
-      this.startY = pageY
-      this.pageX = pageX
-      this.pageY = pageY
-      this.shift = 0
-      this.gesture = null
-      this.lock = false
+      this.startX = pageX;
+      this.startY = pageY;
+      this.pageX = pageX;
+      this.pageY = pageY;
+      this.shift = 0;
+      this.gesture = null;
+      this.lock = false;
       this.lastX = [0, 0, 0];
       this.lastY = [0, 0, 0];
 
       // 从transform提取container当前坐标
-      let computedStyle = getComputedStyle(this.container, null)
-      let transform = computedStyle.transform.split(", ")
-      this.translateStartX = parseInt(transform[4])
-      this.translateStartY = parseInt(transform[5])
+      const computedStyle = getComputedStyle(this.container, null);
+      const transform = computedStyle.transform.split(", ");
+      this.translateStartX = parseInt(transform[4]);
+      this.translateStartY = parseInt(transform[5]);
 
       this.emit('touchstart', ev)
 
@@ -195,7 +208,7 @@ class Base {
     * @param {Number} pageX
     * @param {Number} pageY
     */
-   MoveAgent(ev, pageX, pageY) {
+   moveAgent(ev, pageX, pageY) {
 
       this.pageX = pageX;
       this.pageY = pageY;
@@ -209,11 +222,11 @@ class Base {
    /**
     * 触点释放
     */
-   EndAgent(ev) {
+   endAgent(ev) {
 
       // 触点释放后的滑动方向判断
       // 计算触点释放时的位移差值，假设触发事件的时间周期固定，位移差可以间接反应位移速度
-      let last = this['last' + this.dir]
+      const last = this['last' + this.dir]
       this.shift = last[2] - last[0]
 
       // 正向滑动
@@ -247,9 +260,9 @@ class Base {
       else {
 
          // 滑动方向判断，通过起点圆周判坐标比值判断
-         let moveX = Math.abs(this.moveX)
+         const moveX = Math.abs(this.moveX);
 
-         let moveY = Math.abs(this.moveY)
+         const moveY = Math.abs(this.moveY);
 
          // 超出起始无效自由滑动区域时确认手势
          if (moveX > this.slideGap || moveY > this.slideGap) {
@@ -266,7 +279,7 @@ class Base {
 
             // 未匹配到指定的手势时，禁用Touch
             if (this.gesture !== this.direction) {
-               this.lock = true
+               this.lock = true;
             }
 
          }
@@ -274,6 +287,11 @@ class Base {
       }
 
    }
+   /**
+    * 实例扩展
+    * @param {Function} func 
+    */
+   use(func) {
+      func(this);
+   }
 }
-
-export default Base

@@ -1,9 +1,17 @@
+'use strict';
+
 export default function (pagination) {
 
-   if (!(pagination instanceof Object)) return
+   if (!(pagination instanceof Object)) return;
 
-   let { el } = pagination
+   return function (ctx) {
+
+      ctx.pagination = pagination;
+
+      const { el } = pagination;
    
-   if (!el) return
+      if (!el) return;
+
+   }
 
 }
